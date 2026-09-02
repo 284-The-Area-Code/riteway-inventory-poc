@@ -15,11 +15,28 @@ function showMessage(text) {
 }
 
 function formatNumber(value) {
+  if (value === null || value === undefined) {
+    return "Not available";
+  }
   const number = Number(value);
   if (Number.isNaN(number)) {
     return String(value);
   }
   return number.toLocaleString(undefined, { maximumFractionDigits: 2 });
+}
+
+function formatStatus(status) {
+  if (status === null || status === undefined || status === "") {
+    return "Not available";
+  }
+  return status;
+}
+
+function formatWarning(warning) {
+  if (warning === null || warning === undefined || warning === "") {
+    return "";
+  }
+  return warning;
 }
 
 function countByStatus(items) {
@@ -66,9 +83,10 @@ function renderTable() {
       "<td>" + formatNumber(item.on_hand) + "</td>" +
       "<td>" + formatNumber(item.safety_stock) + "</td>" +
       "<td>" + formatNumber(item.reorder_point) + "</td>" +
-      "<td><span class=\"badge badge-" + item.status + "\">" +
-        item.status +
-      "</span></td>";
+      "<td>" + statusCell(item) + "</td>" +
+      "<td class=\"data-warning-cell\">" +
+        escapeText(formatWarning(item.data_warning)) +
+      "</td>";
 
     tr.addEventListener("click", function () {
       selectedSku = item.sku;
@@ -80,7 +98,29 @@ function renderTable() {
   }
 }
 
+function statusCell(item) {
+  if (item.status === null || item.status === undefined || item.status === "") {
+    return escapeText(formatStatus(item.status));
+  }
+  return (
+    "<span class=\"badge badge-" + item.status + "\">" +
+      escapeText(item.status) +
+    "</span>"
+  );
+}
+
+function escapeText(value) {
+  return String(value)
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;");
+}
+
 function statusReason(item) {
+  if (item.data_warning) {
+    return "Insufficient sales history; a replenishment decision is not calculated.";
+  }
   if (item.status === "STOCKOUT") {
     return "On hand is 0.";
   }
@@ -97,27 +137,41 @@ function hideExplanation() {
   explanationEl.hidden = true;
 }
 
+function observedSalesDisplay(value) {
+  if (value === null || value === undefined) {
+    return "Not available";
+  }
+  return formatNumber(value) + "/day";
+}
+
 function renderExplanation(item) {
   explanationEl.hidden = false;
+  const warningHtml = item.data_warning
+    ? "<p class=\"data-warning\"><strong>Data warning:</strong> " +
+      escapeText(item.data_warning) +
+      "</p>"
+    : "";
   explanationBody.innerHTML =
-    "<p><strong>Product: " + item.product_name +
-      " · SKU: " + item.sku + "</strong></p>" +
-    "<p>" + statusReason(item) + "</p>" +
+    "<p><strong>Product: " + escapeText(item.product_name) +
+      " · SKU: " + escapeText(item.sku) + "</strong></p>" +
+    warningHtml +
+    "<p>" + escapeText(statusReason(item)) + "</p>" +
     "<dl>" +
       "<dt>Average observed sales</dt><dd>" +
-        formatNumber(item.average_daily_demand) + "/day</dd>" +
+        escapeText(observedSalesDisplay(item.average_daily_demand)) + "</dd>" +
       "<dt>Supplier lead time</dt><dd>" +
-        formatNumber(item.lead_time_days) + " days</dd>" +
+        escapeText(formatNumber(item.lead_time_days)) + " days</dd>" +
       "<dt>Lead-time demand</dt><dd>" +
-        formatNumber(item.lead_time_demand) + "</dd>" +
+        escapeText(formatNumber(item.lead_time_demand)) + "</dd>" +
       "<dt>Safety stock</dt><dd>" +
-        formatNumber(item.safety_stock) + "</dd>" +
+        escapeText(formatNumber(item.safety_stock)) + "</dd>" +
       "<dt>Reorder point</dt><dd>" +
-        formatNumber(item.reorder_point) + "</dd>" +
+        escapeText(formatNumber(item.reorder_point)) + "</dd>" +
       "<dt>On hand</dt><dd>" +
-        formatNumber(item.on_hand) + "</dd>" +
+        escapeText(formatNumber(item.on_hand)) + "</dd>" +
     "</dl>" +
-    "<p><strong>Decision: " + item.status + "</strong></p>";
+    "<p><strong>Decision: " + escapeText(formatStatus(item.status)) +
+      "</strong></p>";
 
   explanationEl.scrollIntoView({ behavior: "smooth", block: "nearest" });
 }

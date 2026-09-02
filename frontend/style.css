@@ -145,6 +145,12 @@ tbody tr.is-selected {
   background: var(--ok-bg);
 }
 
+.data-warning-cell,
+.data-warning {
+  color: var(--reorder);
+  font-weight: 700;
+}
+
 .explanation {
   margin-top: 1.25rem;
   background: var(--card);

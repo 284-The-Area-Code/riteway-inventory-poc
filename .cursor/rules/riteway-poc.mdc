@@ -72,12 +72,16 @@ Lead-Time Demand = Average Daily Demand × Lead Time
 
 Reorder Point = Lead-Time Demand + Safety Stock
 
-Initial status hierarchy:
+Inventory decisions (when matching sales history exists):
 
 1. STOCKOUT when on_hand = 0
-2. DATA ISSUE when a required input is missing
-3. REORDER when on_hand <= reorder_point
-4. OK otherwise
+2. REORDER when on_hand <= reorder_point
+3. OK otherwise
+
+Insufficient sales history (zero matching sales records) is a
+separate data-quality / assessment condition, exposed as
+data_warning. It is not a fourth inventory status. Do not use
+DATA ISSUE or UNABLE TO ASSESS as an inventory status.
 
 These are POC assumptions, not confirmed RiteWay rules.
 

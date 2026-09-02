@@ -38,7 +38,8 @@ Dashboard URL (development): `http://127.0.0.1:8000/`.
 
 - Presentation of API results (table, badges, summary counts)
 - Client-side filtering by status (ALL / STOCKOUT / REORDER / OK) without a second database query
-- Row selection and the explanation panel (Product, SKU, status reason sentence, API numeric fields, Decision)
+- Row selection and the explanation panel (Product, SKU, status reason sentence, API numeric fields, Decision, and `data_warning` when present)
+- Null-safe display of missing demand / reorder / status values as **Not available** (never as 0)
 
 The frontend **does not** recompute average demand, lead-time demand, reorder point, or status. Those values come from `GET /api/replenishment`. Display formatting (for example two decimal places) is presentation only.
 
@@ -53,9 +54,15 @@ FastAPI serves this folder with `StaticFiles` (`html=True`) mounted at `/` after
 - Endpoints:
   - `GET /api/health` — `{"status":"ok"}` (no database)
   - `GET /api/inventory` — `inventory_id`, `sku`, `location`, `on_hand`, `safety_stock`
-  - `GET /api/replenishment` — one row per SKU in the current join result, including `average_daily_demand`, `lead_time_days`, `on_hand`, `safety_stock`, `lead_time_demand`, `reorder_point`, `status`
+  - `GET /api/replenishment` — one row per SKU from `products` joined to `suppliers` and `inventory`, with a **LEFT JOIN** to `sales`, including `average_daily_demand`, `lead_time_days`, `on_hand`, `safety_stock`, `lead_time_demand`, `reorder_point`, `status`, and `data_warning`
 
 Replenishment math lives in SQL inside `/api/replenishment`, not in JavaScript.
+
+**VERIFIED** `/api/replenishment` contract (POC):
+
+- Matching sales records > 0: `status` is STOCKOUT / REORDER / OK; `data_warning` is JSON `null`; formulas unchanged.
+- Matching sales records = 0: product remains; `average_daily_demand`, `lead_time_demand`, `reorder_point`, and `status` are JSON `null`; `data_warning` is `"Insufficient sales history"`.
+- `status` is never a fourth inventory label. `data_warning` is not an inventory status.
 
 ## 5. Database
 
@@ -83,15 +90,22 @@ There is no foreign key from inventory to sales. **ASSUMPTION:** POC grain is on
 **VERIFIED:**
 
 ```
-sales (observed units_sold)
+products + suppliers + inventory
    ↓
-average observed sales  (AVG, exposed as average_daily_demand)
+LEFT JOIN sales (COUNT matching rows)
    ↓
-lead-time demand        (× lead_time_days)
-   ↓
-reorder point           (+ safety_stock)
-   ↓
-status                  (STOCKOUT / REORDER / OK)
+if COUNT = 0:
+   average_daily_demand, lead_time_demand, reorder_point, status = null
+   data_warning = "Insufficient sales history"
+if COUNT > 0:
+   average observed sales  (AVG, exposed as average_daily_demand)
+      ↓
+   lead-time demand        (× lead_time_days)
+      ↓
+   reorder point           (+ safety_stock)
+      ↓
+   status                  (STOCKOUT / REORDER / OK)
+   data_warning            (null)
    ↓
 FastAPI JSON
    ↓
@@ -128,9 +142,9 @@ dashboard
 **VERIFIED** limitations of the current POC:
 
 - Synthetic data only; not RiteWay production data
-- Three statuses only; no separate data-availability status (**RQ-05** not implemented)
-- Inner join to `sales`: missing sales history would omit a product (**RQ-03** not implemented)
+- Three inventory statuses only; insufficient sales history is `data_warning` plus null `status`, not a fourth inventory status
 - Observed sales ≠ true demand; zero-sales days cannot be explained from the schema
+- Live synthetic data has sales for every SKU; the zero-sales-history API path is verified by read-only SQL simulation, not by a live dashboard row
 - No authentication, no cloud, no ERP integration
 - Safety stock and lead times are POC inputs, not confirmed RiteWay policy
 - Local single-process FastAPI; no connection pooling documented as a requirement

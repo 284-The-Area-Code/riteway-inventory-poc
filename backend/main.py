@@ -56,14 +56,20 @@ def list_replenishment():
                     lead_time_demand,
                     reorder_point,
                     CASE
+                        WHEN sales_records = 0 THEN NULL
                         WHEN on_hand = 0 THEN 'STOCKOUT'
                         WHEN on_hand <= reorder_point THEN 'REORDER'
                         ELSE 'OK'
-                    END AS status
+                    END AS status,
+                    CASE
+                        WHEN sales_records = 0 THEN 'Insufficient sales history'
+                        ELSE NULL
+                    END AS data_warning
                 FROM (
                     SELECT
                         p.sku,
                         p.product_name,
+                        COUNT(sa.sku) AS sales_records,
                         AVG(sa.units_sold) AS average_daily_demand,
                         s.lead_time_days,
                         i.on_hand,
@@ -74,7 +80,7 @@ def list_replenishment():
                     FROM products AS p
                     JOIN suppliers AS s ON p.supplier_id = s.supplier_id
                     JOIN inventory AS i ON p.sku = i.sku
-                    JOIN sales AS sa ON p.sku = sa.sku
+                    LEFT JOIN sales AS sa ON p.sku = sa.sku
                     GROUP BY
                         p.sku,
                         p.product_name,

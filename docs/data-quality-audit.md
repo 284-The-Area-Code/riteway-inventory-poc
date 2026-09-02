@@ -76,14 +76,26 @@ No conclusion is drawn beyond that limitation.
 - **`INNER JOIN sales`:** a product with **no** matching sales rows **disappears** from the replenishment result.
 - **`LEFT JOIN sales`:** the product can **remain** visible; missing sales history can be seen instead of being dropped.
 
-**VERIFIED** current application SQL: `GET /api/replenishment` joins `products` to `sales` with a plain `JOIN` (inner join). In the **current** synthetic set, every product has sales, so no SKU is dropped for this reason today.
+**VERIFIED** current application SQL: `GET /api/replenishment` uses a **LEFT JOIN** to `sales` and counts matching rows with `COUNT(sa.sku)`.
 
-**PROPOSED** requirement area (see RQ-03 in `docs/requirements.md`): a product should not silently disappear from analysis only because sales history is missing. This is a **POC analysis conclusion**, **not** a confirmed RiteWay production requirement. **NOT IMPLEMENTED** as a LEFT JOIN / DATA ISSUE path in the running API.
+When `COUNT(sa.sku) = 0` (insufficient sales history for this POC):
+
+- the product **remains** in the replenishment result
+- `average_daily_demand`, `lead_time_demand`, `reorder_point`, and `status` are null
+- `data_warning` is `"Insufficient sales history"`
+
+When `COUNT(sa.sku) > 0`, existing formulas and STOCKOUT / REORDER / OK apply, and `data_warning` is null.
+
+A day with `units_sold = 0` is **not** this case and is **not** automatically a data-quality error.
+
+In the **current** synthetic set, every product has 30 sales records, so the zero-sales-history path is **not** visible in the live dashboard; it has been checked with read-only SQL simulation.
+
+This LEFT JOIN / `data_warning` behavior implements **RQ-06** in this POC. It is **not** a confirmed RiteWay production requirement. A fourth inventory status (DATA ISSUE / UNABLE TO ASSESS) is **not** used.
 
 ## 7. Audit Conclusion
 
 **VERIFIED:** the synthetic dataset is **structurally clean** for the current POC (counts, keys, non-negatives, no NULLs in the checked fields, full 30-day sales coverage per SKU).
 
-**VERIFIED limitation:** demand **interpretation** is constrained: observed sales are a proxy; zero-sales days are unexplained by the schema; missing-sales behavior of an inner join is a completeness risk if such products appear later.
+**VERIFIED limitation:** demand **interpretation** is constrained: observed sales are a proxy; zero-sales days are unexplained by the schema. If a product had no sales rows, the API would retain it with null demand/status and `data_warning` rather than dropping it or fabricating demand `0`.
 
 **ASSUMPTION:** “clean for the POC” does not mean “valid as RiteWay production data.”
