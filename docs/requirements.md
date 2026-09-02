@@ -25,7 +25,7 @@ It is **not** a production RiteWay system, an ERP replacement, a purchasing auto
 - Status counts (STOCKOUT, REORDER, OK), client-side status filters, row selection, and an explanation panel that displays API fields
 - Replenishment formulas and status rules implemented in SQL and verified in PostgreSQL
 
-**NOT IMPLEMENTED / out of this requirements slice:** RQ-03, RQ-04, and RQ-05 (see section 4). Git history is maintained by the developer; a baseline commit message `Baseline inventory replenishment POC` (`a50f442`) was recorded by the project owner.
+**NOT IMPLEMENTED / out of this requirements slice:** RQ-03, RQ-04, RQ-05, and RQ-06 (see section 4). Git history is maintained by the developer; a baseline commit message `Baseline inventory replenishment POC` (`a50f442`) was recorded by the project owner.
 
 ## 4. Functional Requirements
 
@@ -43,6 +43,9 @@ It is **not** a production RiteWay system, an ERP replacement, a purchasing auto
 | **RQ-03** | The system shall not silently treat missing sales history as zero demand. | **PROPOSED** / **NOT IMPLEMENTED**. Current SQL uses an inner join to `sales`. A product with no sales rows would not appear. In the current synthetic dataset, every SKU has 30 sales records, so this gap is not visible in the live dashboard. |
 | **RQ-04** | Zero observed sales on a day shall not automatically be classified as a data error or stockout. | **PROPOSED** as a documentation/interpretation rule. **VERIFIED** that the current status rules do **not** treat a zero-sales *day* as STOCKOUT; STOCKOUT is `on_hand = 0` only. Zero-sales days are not flagged as data errors in the application. |
 | **RQ-05** | The system shall distinguish data-availability limitations from the replenishment decision when sufficient information is unavailable. | **PROPOSED** / **NOT IMPLEMENTED**. Current statuses are only STOCKOUT, REORDER, and OK. There is no DATA ISSUE (or similar) status in the API. |
+| **RQ-06** | The system should retain products with insufficient or missing sales history in replenishment analysis and should not fabricate a demand value or silently omit the product. The data limitation should be represented separately from the normal inventory decision. | **PROPOSED** / **NOT IMPLEMENTED**. Current `/api/replenishment` still inner-joins `sales` and returns only STOCKOUT / REORDER / OK. This POC will **not** add `UNABLE TO ASSESS` (or any fourth value) as an inventory status. Insufficient history would be a **separate data-quality / assessment condition**, to be designed later. This is a POC proposal, not a confirmed RiteWay production requirement. |
+
+RQ-06 refines how RQ-03 and RQ-05 would be represented: keep STOCKOUT, REORDER, and OK as the inventory decisions; do not treat insufficient sales history as a fourth inventory status.
 
 These proposed items are **not** confirmed RiteWay production requirements.
 
@@ -106,6 +109,8 @@ Status:
 2. **REORDER** when `on_hand <= reorder_point`
 3. **OK** otherwise
 
+Inventory decisions remain these three statuses. Missing or insufficient **sales history** is **not** a new inventory status (**RQ-06**, **NOT IMPLEMENTED**).
+
 The field name `average_daily_demand` is **observed sales**, not a forecast.
 
 **ASSUMPTION:** these formulas and the three statuses are POC rules. **UNKNOWN:** RiteWay’s actual replenishment policy, safety-stock policy, and thresholds.
@@ -116,7 +121,8 @@ The field name `average_daily_demand` is **observed sales**, not a forecast.
 
 - **Observed sales vs true demand:** Sales are recorded transactions (`units_sold`). They are used as a demand *proxy*. They are not a measurement of unconstrained true demand.
 - **Zero observed sales on a day:** Present for SKU 10026 (4 days) and SKU 10030 (5 days). **PROPOSED (RQ-04):** these days are not automatically a data error or a stockout. **UNKNOWN:** whether each zero represents genuine zero demand, unavailability, or another condition. The schema has no availability history to decide.
-- **Missing sales history:** **PROPOSED (RQ-03):** do not silently treat missing history as zero demand. **VERIFIED** current implementation: inner join to `sales` would omit a product with no sales rows. The current synthetic set has no such product.
+- **Missing sales history:** **PROPOSED (RQ-03, RQ-06):** do not silently treat missing history as zero demand; do not omit the product; do not fabricate demand. Represent the limitation as a **data-quality / assessment condition**, separate from STOCKOUT / REORDER / OK. **VERIFIED** current implementation: inner join to `sales` would omit a product with no sales rows. The current synthetic set has no such product.
+- **Distinction:** **Missing or insufficient sales history** for calculating observed demand → proposed data-quality handling (**RQ-06**). **An individual day with `units_sold = 0`** → not automatically a data-quality error (**RQ-04**).
 
 Do not invent further interpretation rules.
 
@@ -131,6 +137,7 @@ Do not invent further interpretation rules.
 - Actual RiteWay production requirements, schema, and processes are not yet known.
 - PostgreSQL, the table names, and the local stack are provisional for this POC.
 - The application database role is intended to be read-only (`riteway_app` by default).
+- Insufficient or missing sales history is proposed as a **data-quality / assessment condition**, not a fourth inventory status.
 
 ## 9. Unknowns / Items Requiring Business Confirmation
 
@@ -154,4 +161,4 @@ Do not invent further interpretation rules.
 - AI/ML or statistical forecasting models
 - Production integration with RiteWay systems
 - Authentication, cloud deployment, Docker, or invented RiteWay workflows
-- Implementing RQ-03–RQ-05 until they are explicitly approved
+- Implementing RQ-03–RQ-06 until they are explicitly approved
