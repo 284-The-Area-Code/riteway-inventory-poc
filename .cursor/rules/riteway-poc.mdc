@@ -1,0 +1,183 @@
+---
+description: Core rules for the RiteWay Inventory Intelligence POC
+alwaysApply: true
+---
+
+# RiteWay Inventory Intelligence POC
+
+## Project Purpose
+
+This is a small Proof of Concept web application demonstrating an
+inventory replenishment decision-support workflow using synthetic data.
+
+The purpose is to demonstrate:
+- technical implementation
+- SQL and relational database thinking
+- business analysis
+- data-quality awareness
+- explainable business rules
+- ability to learn an unfamiliar business domain
+
+This is NOT a production RiteWay system.
+
+## Critical Business Boundaries
+
+- Never claim knowledge of RiteWay's actual database schema, business
+  processes, data sources, or architecture unless explicitly provided
+  by the user.
+- Never invent RiteWay requirements or business rules.
+- Never use confidential RiteWay data.
+- Synthetic/sample data only unless the user explicitly provides
+  sanitized information for the POC.
+- Clearly distinguish assumptions from confirmed requirements.
+- If information is unknown, say so rather than inventing an answer.
+
+## Learning Requirement
+
+The user is learning while building this project.
+
+Do not blindly generate large amounts of unexplained code.
+
+When introducing a technical or business concept:
+1. Explain what it is.
+2. Explain why it exists.
+3. Explain why it matters to the business.
+4. Explain how it fits this application.
+5. Then implement it.
+
+Prefer small understandable changes over large rewrites.
+
+## Architecture
+
+Current provisional stack:
+
+- Frontend: HTML, CSS, JavaScript
+- Backend: Python + FastAPI
+- Database: PostgreSQL
+- Data analysis/preparation: Python + Pandas
+- API format: JSON
+
+Do not introduce React, Node.js, Docker, cloud services,
+machine learning, AI APIs, or other technologies unless a concrete
+project requirement justifies them.
+
+PostgreSQL is provisional. The actual database technology may change
+after RiteWay environment information is received.
+
+## Business Logic
+
+Current simplified POC model:
+
+Lead-Time Demand = Average Daily Demand × Lead Time
+
+Reorder Point = Lead-Time Demand + Safety Stock
+
+Initial status hierarchy:
+
+1. STOCKOUT when on_hand = 0
+2. DATA ISSUE when a required input is missing
+3. REORDER when on_hand <= reorder_point
+4. OK otherwise
+
+These are POC assumptions, not confirmed RiteWay rules.
+
+The system should prefer explainable deterministic logic over opaque
+AI recommendations.
+
+## Data Modeling
+
+Current provisional entities:
+
+- suppliers
+- products
+- inventory
+- sales
+
+SKU is an identifier and should be treated as text/string.
+
+Do not assume this schema matches RiteWay's real database.
+
+## Data Quality
+
+Treat these as important cases:
+- missing values
+- NULL versus zero
+- duplicate records
+- invalid relationships
+- negative quantities
+- stockouts
+- zero observed sales during stockouts
+- unusual/extreme values
+
+Do not silently "fix" questionable business data without explaining
+the assumption.
+
+## Development Workflow
+
+Preferred sequence:
+
+business question
+→ data
+→ data quality
+→ business rule
+→ SQL/Python logic
+→ API
+→ UI
+→ testing
+
+Use the smallest viable implementation.
+
+Before making broad changes:
+- inspect the existing project
+- explain the proposed change
+- make the smallest appropriate change
+- verify the result
+
+## Git / Version Control — STRICT
+
+AI must NOT perform version-control operations for this project.
+
+Do not:
+- initialize Git
+- create, delete, or switch branches
+- stage files
+- commit
+- amend commits
+- merge
+- rebase
+- reset
+- cherry-pick
+- tag
+- push
+- pull
+- fetch
+- clone
+- modify Git history
+- modify Git configuration
+- execute Git commands on the user's behalf
+
+The user performs all Git/version-control operations manually.
+
+If a Git operation would normally be useful, explain what the user
+should do and why, but do not execute it.
+
+## Safety Around Commands
+
+Do not execute destructive shell commands unless explicitly requested
+by the user.
+
+Do not delete project files or directories merely to "clean up" without
+first explaining what would be removed.
+
+Do not make changes outside the project directory unless explicitly
+required and approved by the user.
+
+## Communication
+
+Be precise and honest.
+
+Do not oversell the user's experience or claim expertise they have not
+established.
+
+When uncertain, identify the uncertainty and recommend the simplest
+defensible approach.

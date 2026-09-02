@@ -1,0 +1,31 @@
+sku,product_name,category,supplier_id,unit_of_measure
+10001,Whole Milk 1L,Dairy,SUP002,unit
+10002,Low-Fat Milk 1L,Dairy,SUP002,unit
+10003,Cheddar Cheese 200g,Dairy,SUP002,unit
+10004,Unsalted Butter 250g,Dairy,SUP002,unit
+10005,Yogurt Plain 500g,Dairy,SUP002,unit
+10006,White Bread Loaf,Bakery,SUP006,loaf
+10007,Whole Wheat Bread,Bakery,SUP006,loaf
+10008,Hamburger Buns 8pk,Bakery,SUP006,pack
+10009,Croissants 6pk,Bakery,SUP006,pack
+10010,Fresh Eggs 12pk,Dairy,SUP002,carton
+10011,White Rice 5lb,Pantry,SUP004,bag
+10012,Long Grain Rice 10lb,Pantry,SUP004,bag
+10013,Pasta Spaghetti 16oz,Pantry,SUP004,box
+10014,Tomato Sauce 24oz,Pantry,SUP004,can
+10015,Canned Tuna 5oz,Pantry,SUP005,can
+10016,Breakfast Cereal 18oz,Cereal,SUP005,box
+10017,Corn Flakes 12oz,Cereal,SUP005,box
+10018,Bottled Water 24pk,Beverages,SUP003,case
+10019,Cola 2L,Beverages,SUP003,bottle
+10020,Orange Juice 1L,Beverages,SUP003,unit
+10021,Apple Juice 1L,Beverages,SUP003,unit
+10022,Ground Coffee 12oz,Beverages,SUP005,bag
+10023,Potato Chips 8oz,Snacks,SUP001,bag
+10024,Crackers 9oz,Snacks,SUP001,box
+10025,Chocolate Cookies 12oz,Snacks,SUP001,box
+10026,Bananas 1lb,Produce,SUP001,lb
+10027,Apples 1lb,Produce,SUP001,lb
+10028,Lettuce Head,Produce,SUP001,head
+10029,Frozen Chicken 2lb,Frozen,SUP005,pack
+10030,Frozen Mixed Vegetables 1lb,Frozen,SUP005,bag

@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Inventory Replenishment</title>
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <header class="page-header">
+      <h1>Inventory Replenishment</h1>
+      <p>
+        Review current inventory risk and identify products requiring attention.
+      </p>
+      <p class="poc-note">
+        Proof of concept using synthetic data. Not a production system.
+      </p>
+    </header>
+
+    <section class="summary" aria-label="Status counts">
+      <article class="card stockout">
+        <h2>STOCKOUT</h2>
+        <p id="count-stockout" class="count">—</p>
+      </article>
+      <article class="card reorder">
+        <h2>REORDER</h2>
+        <p id="count-reorder" class="count">—</p>
+      </article>
+      <article class="card ok">
+        <h2>OK</h2>
+        <p id="count-ok" class="count">—</p>
+      </article>
+    </section>
+
+    <section class="filters" aria-label="Filter by status">
+      <button type="button" data-filter="ALL" class="is-active">All</button>
+      <button type="button" data-filter="STOCKOUT">STOCKOUT</button>
+      <button type="button" data-filter="REORDER">REORDER</button>
+      <button type="button" data-filter="OK">OK</button>
+    </section>
+
+    <p id="status-message" class="status-message" hidden></p>
+
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>SKU</th>
+            <th>Product</th>
+            <th>Avg. Daily Observed Sales</th>
+            <th>Lead Time</th>
+            <th>On Hand</th>
+            <th>Safety Stock</th>
+            <th>Reorder Point</th>
+            <th>Status</th>
+          </tr>
+        </thead>
+        <tbody id="replenishment-body"></tbody>
+      </table>
+    </div>
+
+    <section id="explanation" class="explanation" hidden>
+      <h2>Why is this item flagged?</h2>
+      <div id="explanation-body"></div>
+    </section>
+
+    <script src="app.js"></script>
+  </body>
+</html>
